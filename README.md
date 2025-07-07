@@ -9,7 +9,7 @@ It is available open-source and in complied .exe version.
 ## 🧰 Features
 
 - **AES-GCM Encryption**: Utilizes authenticated encryption to ensure confidentiality and integrity.
-- **System-bound Transfers**: Encrypted files can be locked to a specific device using a unique system ID.
+- **System-bound Transfers**: Encrypted files can be locked to a specific device using a unique system ID, making it impossible to open on other device without system ID give.
 - **Randomized Filenames**: Optionally obfuscate output files with randomized names.
 - **Auto Destruction**: Files can be set to self-destruct after a configurable number of failed decryption attempts.
 - **Metadata Protection**: Metadata is encrypted and authenticated to avoid tampering.
