@@ -26,7 +26,9 @@ It is available open-source and in complied .exe version.
 - **Secure Randomness**: Uses `os.urandom` and `SystemRandom` for cryptographically secure generation of salts, nonces, and filenames.
 - **File Hiding**: Automatically hides system ID file on supported platforms.
 - **GCM Mode**: Ensures both encryption and verification using AES in Galois/Counter Mode.
-
+- **File diversification**: Diversifying secured file into .enc and .info files. File with .enc extension is main one, and .info is extra information about first one. Both are encrypted and one cant be opeene without another
+- It will not open if the file was tampered with too.
+- **Extra security layer**: Generating extra string spread in two files, and files can only be matched if System ID, password, and string matches.
 ---
 
 ## 🚀 Installation
