@@ -213,7 +213,6 @@ def decrypt_file(encrypted_path, password):
             max_attempts = int.from_bytes(attempts_bytes, 'big', signed=True)
             part1 = SecureByteArray(f.read(32))
             
-            # Fixed tag reading logic
             remaining_data = f.read()
             ciphertext = remaining_data[:-16]
             tag = remaining_data[-16:]
@@ -317,13 +316,11 @@ class EncryptionApp:
         self.style.configure("TCheckbutton", background="#2b2b2b", foreground="white")
 
     def create_widgets(self):
-        # File Selection
         ttk.Label(self.root, text="File Path:").grid(row=0, column=0, padx=10, pady=10)
         self.file_entry = ttk.Entry(self.root, width=50)
         self.file_entry.grid(row=0, column=1, padx=10, pady=10)
         ttk.Button(self.root, text="Browse", command=self.browse_file).grid(row=0, column=2)
 
-        # Encryption Options
         self.random_var = IntVar()
         self.delete_var = IntVar()
         self.transfer_var = IntVar()
@@ -337,11 +334,9 @@ class EncryptionApp:
         self.attempts_entry = ttk.Entry(self.root, width=5)
         self.attempts_entry.grid(row=3, column=1, sticky='w')
 
-        # Action Buttons
         ttk.Button(self.root, text="Encrypt", command=self.encrypt_action).grid(row=4, column=0, pady=15)
         ttk.Button(self.root, text="Decrypt", command=self.decrypt_action).grid(row=4, column=2, pady=15)
 
-        # System ID
         self.sys_id_label = ttk.Label(
             self.root, 
             text=f"System ID: {get_system_id()}", 
