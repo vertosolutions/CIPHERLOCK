@@ -1,48 +1,67 @@
-# CIPHERLOCK
-# 🔐 CIPHERLOCKS v5 – Secure File Encryption Tool
+# Cipherlocks
 
-**CIPHERLOCKS v5** is a robust file encryption/decryption application designed for security-conscious users. It features a sleek GUI, high-grade encryption, secure memory handling, and unique protections like device-bound transfer restrictions and auto-destruction on repeated access failure.
+Cipherlocks is a professional-grade desktop encryption suite with a PySide6 GUI, hardened crypto workflow, and LAN-bound key-share support for anti-espionage file protection.
 
-It is available open-source and in complied .exe version.
----
+## What changed
 
-## 🧰 Features
+- Migrated GUI from Tkinter to **PySide6** for a modern cross-platform desktop experience.
+- Refactored from one script into dedicated modules for security, crypto, GUI, identity, and LAN services.
+- Replaced system-bound transfer mode with **LAN-bound decryption policy**.
+- Added **GitHub Actions** matrix build for Windows, macOS, and Linux, including a Linux AppImage artifact.
 
-- **AES-GCM Encryption**: Utilizes authenticated encryption to ensure confidentiality and integrity.
-- **System-bound Transfers**: Encrypted files can be locked to a specific device using a unique system ID, making it impossible to open on other device without system ID give.
-- **Randomized Filenames**: Optionally obfuscate output files with randomized names.
-- **Auto Destruction**: Files can be set to self-destruct after a configurable number of failed decryption attempts.
-- **Metadata Protection**: Metadata is encrypted and authenticated to avoid tampering.
-- **Secure Delete**: Optionally overwrite and remove the original file after encryption.
-- **User-Friendly GUI**: Built with `Tkinter` and `ttkthemes` for a modern dark-mode interface.
-- **Clipboard Support**: Quickly copy system ID via GUI for secure transfers.
+## Project structure
 
----
+- `main.py`: desktop entry point.
+- `cipherlock/gui.py`: PySide6 user interface.
+- `cipherlock/crypto.py`: encryption/decryption engine and key derivation.
+- `cipherlock/network_client.py`: client integration with LAN key-share service.
+- `cipherlock/lan_server.py`: internal key-share service (Tang/Clevis-inspired share provider).
+- `cipherlock/security.py`: secure wiping and secure delete helpers.
+- `cipherlock/system_identity.py`: stable local system identity generation.
+- `.github/workflows/build.yml`: cross-platform build pipeline.
 
-## 🔐 Security Features
+## LAN-only access model (corporate use)
 
-- **Scrypt Key Derivation**: Passwords are strengthened using the Scrypt KDF, protecting against brute-force attacks.
-- **Memory Sanitization**: Sensitive data like passwords and keys are wiped from memory after use.
-- **Secure Randomness**: Uses `os.urandom` and `SystemRandom` for cryptographically secure generation of salts, nonces, and filenames.
-- **File Hiding**: Automatically hides system ID file on supported platforms.
-- **GCM Mode**: Ensures both encryption and verification using AES in Galois/Counter Mode.
-- **File diversification**: Diversifying secured file into .enc and .info files. File with .enc extension is main one, and .info is extra information about first one. Both are encrypted and one cant be opened without another
-- It will not open if the file was tampered with too.
-- **Extra security layer**: Generating extra string spread in two files, and files can only be matched if System ID, password, and string matches.
----
+When **Require LAN key-share server** is enabled during encryption:
 
-## 🚀 Installation
+1. Client derives base key context from password + local system identity.
+2. Client requests a network key share from LAN server.
+3. Final key context includes password + system identity + network share component.
+4. Decryption requires reaching the LAN key server; stolen offline files remain unusable.
 
-The fastest way to launch that is to download or copy repository and launch CIPHERLOCK.exe file. Additionally, you can use open-source version:
+### Server hardening notes
 
+For production deployment:
 
-1. Clone or download this repository (git clone https://github.com/vertosolutions/CIPHERLOCK)
-2. Install dependencies:
+- Bind `uvicorn` to an internal interface only.
+- Place server in an isolated VLAN.
+- Enforce mTLS at reverse proxy or ingress.
+- Block WAN routes to the key-share port.
 
+## Run locally
+
+```bash
 pip install -r requirements.txt
+python main.py
+```
 
-Done!
+### Optional: run LAN key-share server
 
-Enjoy you secure file. Made with love by Verto Solutions
+```bash
+export CIPHERLOCK_SERVER_MASTER_KEY="change-me"
+uvicorn cipherlock.lan_server:app --host 192.168.10.20 --port 8443 --ssl-keyfile key.pem --ssl-certfile cert.pem
+```
 
-DO NOT REPRODUCE WITHOUT PERMISSION. THIS IS AN INTELLECTUAL PROPERTY OF https://github.com/vertosolutions
+## Build artifacts
+
+Local build:
+
+```bash
+pyinstaller --noconfirm --windowed --name cipherlocks main.py
+```
+
+CI build (GitHub Actions) produces:
+
+- Windows: `.exe`
+- macOS: `.app`
+- Linux: AppImage

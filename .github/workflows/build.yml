@@ -1,0 +1,52 @@
+name: Build Cipherlocks Desktop
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build with PyInstaller
+        run: |
+          pyinstaller --noconfirm --windowed --name cipherlocks main.py
+
+      - name: Create Linux AppImage
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfuse2
+          wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
+          chmod +x appimagetool
+          mkdir -p AppDir/usr/bin
+          cp -r dist/cipherlocks/* AppDir/usr/bin/
+          printf '[Desktop Entry]\nType=Application\nName=Cipherlocks\nExec=cipherlocks\nIcon=cipherlocks\nCategories=Utility;Security;\n' > AppDir/cipherlocks.desktop
+          ./appimagetool AppDir cipherlocks-x86_64.AppImage
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cipherlocks-${{ runner.os }}
+          path: |
+            dist/**
+            *.AppImage
